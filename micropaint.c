@@ -14,10 +14,10 @@ typedef struct s_rect
 
 typedef struct s_info
 {
-	int	    back_height;
-	int 	back_width;
-	char	back_style;
-	char	**draw;
+	int	    height;
+	int 	width;
+	char	back;
+	char	**mat;
 
 }		t_info;
 
@@ -28,20 +28,20 @@ void	init_draw(t_info *info)
 	int	i;
 
 	n = 0;
-	info->draw = malloc((info->back_height + 1) * sizeof(char *));
-	while (n < info->back_height)
+	info->mat = malloc((info->height + 1) * sizeof(char *));
+	while (n < info->height)
 	{
 		i = 0;
-		info->draw[n] = malloc((info->back_width + 1) * sizeof(char));
-		while (i < info->back_width)
+		info->mat[n] = malloc((info->width + 1) * sizeof(char));
+		while (i < info->width)
 		{
-			info->draw[n][i] = info->back_style;
+			info->mat[n][i] = info->back;
 			i++;
 		}
-		info->draw[n][i] = '\0';
+		info->mat[n][i] = '\0';
 		n++;
 	}
-	info->draw[n] = NULL;
+	info->mat[n] = NULL;
 }
 
 int	is_in(t_rect *rect, int x, int y)
@@ -60,14 +60,14 @@ void	exec_one(t_rect *rect, t_info *info)
 	int	state;
 
 	y = 0;
-	while (info->draw[y])
+	while (info->mat[y])
 	{
 		x = 0;
-		while (info->draw[y][x])
+		while (info->mat[y][x])
 		{
 			state = is_in(rect, x, y);
 			if (!(state == 0 || (state == 1 && rect->type == 'r')))
-				info->draw[y][x] = rect->style;
+				info->mat[y][x] = rect->style;
 			x++;
 		}
 		y++;
@@ -99,10 +99,7 @@ int	actions(t_info *info, FILE *file)
 		good = fscanf(file, "%c %f %f %f %f %c\n", &rect.type, &rect.x, &rect.y, &rect.height, &rect.width, &rect.style);
 	}
 	if (good == -1)
-	{
-		draw(info->draw, info->back_width);
 		return (0);
-	}
 	return (1);
 }
 
@@ -111,9 +108,8 @@ int	micropaint(FILE *file)
 	int	good;
 	t_info	info;
 
-	good = fscanf(file, "%i %i %c\n", &info.back_width, &info.back_height, &info.back_style);
-	printf("%i", good);
-	if (good != 3 || info.back_width <= 0 || info.back_width > 300 || info.back_height <= 0 || info.back_height > 300)
+	good = fscanf(file, "%i %i %c\n", &info.width, &info.height, &info.back);
+	if (good != 3 || info.width <= 0 || info.width > 300 || info.height <= 0 || info.height > 300)
 		return (1);
 	init_draw(&info);
 	if (actions(&info, file))
@@ -121,7 +117,7 @@ int	micropaint(FILE *file)
 		write(1, "Error: Operation file corrupted\n", 32);
 		return (1);
 	}
-	draw(info.draw, info.back_width);
+	draw(info.mat, info.width);
 	return (0);
 }
 

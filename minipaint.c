@@ -14,10 +14,10 @@ typedef struct s_circle
 
 typedef struct s_info
 {
-	int		back_height;
-	int		back_width;
-	char	back_style;
-	char	**draw;
+	int		height;
+	int		width;
+	char	back;
+	char	**mat;
 
 }		t_info;
 
@@ -28,20 +28,20 @@ void	init_draw(t_info *info)
 	int	i;
 
 	n = 0;
-	info->draw = malloc((info->back_height + 1) * sizeof(char *));
-	while (n < info->back_height)
+	info->mat = malloc((info->height + 1) * sizeof(char *));
+	while (n < info->height)
 	{
 		i = 0;
-		info->draw[n] = malloc((info->back_width + 1) * sizeof(char));
-		while (i < info->back_width)
+		info->mat[n] = malloc((info->width + 1) * sizeof(char));
+		while (i < info->width)
 		{
-			info->draw[n][i] = info->back_style;
+			info->mat[n][i] = info->back;
 			i++;
 		}
-		info->draw[n][i] = '\0';
+		info->mat[n][i] = '\0';
 		n++;
 	}
-	info->draw[n] = NULL;
+	info->mat[n] = NULL;
 }
 
 float	get_distance(int x, int y, t_circle *circle)
@@ -72,14 +72,14 @@ void	exec_one(t_circle *circle, t_info *info)
 	int	state;
 
 	y = 0;
-	while (info->draw[y])
+	while (info->mat[y])
 	{
 		x = 0;
-		while (info->draw[y][x])
+		while (info->mat[y][x])
 		{
 			state = is_in(circle, x, y);
 			if (!(state == 0 || (state == 1 && circle->type == 'c')))
-				info->draw[y][x] = circle->style;
+				info->mat[y][x] = circle->style;
 			x++;
 		}
 		y++;
@@ -111,10 +111,7 @@ int	actions(t_info *data, FILE *file)
 		good = fscanf(file, "%c %f %f %f %c\n", &circle.type, &circle.x, &circle.y, &circle.radius, &circle.style);
 	}
 	if (good == -1)
-	{
-		draw(data->draw, data->back_width);
 		return (0);
-	}
 	return (1);
 }
 
@@ -123,13 +120,16 @@ int	minipaint(FILE *file)
 	int	good;
 	t_info	info;
 
-	good = fscanf(file, "%d %d %c\n", &info.back_width, &info.back_height, &info.back_style);
-	if (good != 3 || info.back_width <= 0 || info.back_width > 300 || info.back_height <= 0 || info.back_height > 300)
+	good = fscanf(file, "%d %d %c\n", &info.width, &info.height, &info.back);
+	if (good != 3 || info.width <= 0 || info.width > 300 || info.height <= 0 || info.height > 300)
 		return (1);
 	init_draw(&info);
-	if (!actions(&info, file))
+	if (actions(&info, file))
+	{
+		write(1, "Error: Operation file corrupted\n", 32);
 		return (0);
-	draw(info.draw, info.back_width);
+	}
+	draw(info.mat, info.width);
 	return (0);
 }
 
